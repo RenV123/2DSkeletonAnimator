@@ -1,0 +1,265 @@
+﻿<Controls:MetroWindow x:Name="mainWindow" x:Class="_2DSkeletonAnimator.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+                      xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Platform"
+        xmlns:helpers="clr-namespace:_2DSkeletonAnimator.Helpers"
+        xmlns:dragDrop="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop"
+        xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+        xmlns:zoomWpfTest="clr-namespace:ZoomWpfTest"
+        xmlns:model="clr-namespace:_2DSkeletonAnimator.Model"
+        xmlns:slide="clr-namespace:_2DSkeletonAnimator.View"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        mc:Ignorable="d"
+        Height="{Binding WindowHeight, Mode=TwoWay}" Width="{Binding WindowWidth, Mode=TwoWay}" DataContext="{Binding Source={StaticResource MainViewModel}}" 
+        WindowStartupLocation="CenterScreen" 
+        BorderThickness="2" 
+        GlowBrush="{DynamicResource AccentColorBrush}"
+        WindowTransitionsEnabled="True"
+        Cursor="{Binding Cursor}" Icon="/2DSkeletonAnimator;component/Resources/Icon.png" MinWidth="640" MinHeight="420"
+        Dialog:DialogParticipation.Register="{Binding}" ResizeMode="CanResizeWithGrip" TitleCaps="False" SaveWindowPosition="True" TitlebarHeight="27" EnableDWMDropShadow="True">
+    <!--i had to bind Window width and height twoway otherwise the size of the window is different -->
+    <Window.Resources>
+        <helpers:BindingProxy x:Key="proxy" Data="{Binding}" />
+        <helpers:BoolToBorderThicknessConverter x:Key="BoolToThicknessConvert"/>
+        <helpers:DoubleToStringConverter x:Key="DoubleToStringConverter"/>
+        <helpers:BoolToBrushConverter x:Key="BoolToBrushConverter"/>
+    </Window.Resources>
+    <Window.InputBindings>
+        <KeyBinding Command="{Binding UndoCommand}" Modifiers="Control" Key="Z"/>
+        <KeyBinding Command="{Binding RedoCommand}" Modifiers="Control" Key="Y"/>
+        <KeyBinding Command="{Binding OpenProjectCommand}" Modifiers="Control" Key="O"/>
+        <KeyBinding Command="{Binding SaveProjectCommand}" Modifiers="Control" Key="S"/>
+        <!--<KeyBinding Command="{Binding CloseProjectCommand}" Modifiers="Alt" Key="F4"/>-->
+    </Window.InputBindings>
+    <Controls:MetroWindow.LeftWindowCommands>
+        <Controls:WindowCommands>
+            <DockPanel>
+                <Menu DockPanel.Dock="Top" Background="{x:Null}">
+                    <MenuItem Header="File" Background="#00000000" Foreground="White" BorderThickness="0" Opacity="0.995">
+                        <MenuItem Header="Import Resource" Background="{DynamicResource AccentColorBrush}" BorderThickness="0" 
+                                  Command="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ImportTextureCommand}" CommandParameter="{Binding .}"/>
+                        <MenuItem Header="Open Project" Background="{DynamicResource AccentColorBrush}" BorderThickness="0" 
+                                  Command="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.OpenProjectCommand}" CommandParameter="{Binding .}"/>
+                        <MenuItem Header="Save Project" Background="{DynamicResource AccentColorBrush}" BorderThickness="0" 
+                                  Command="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.SaveProjectCommand}" CommandParameter="{Binding .}"/>
+                        <MenuItem Header="Close Project" Background="{DynamicResource AccentColorBrush}" BorderThickness="0" 
+                                  Command="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.CloseProjectCommand}" CommandParameter="{Binding ElementName=zoomViewer}"/>
+                    </MenuItem>
+                </Menu>
+            </DockPanel>
+            <Button Width="20" Height="20" Command="{Binding UndoCommand}">
+                <Rectangle Fill="White" Width="15" Height="15">
+                    <Rectangle.OpacityMask>
+                        <VisualBrush Stretch="Fill"
+                                     Visual="{DynamicResource appbar_undo}" />
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+            </Button>
+            <Button Width="20" Height="20" Command="{Binding RedoCommand}">
+                <Rectangle Fill="White" Width="15" Height="15">
+                    <Rectangle.OpacityMask>
+                        <VisualBrush Stretch="Fill"
+                                     Visual="{DynamicResource appbar_redo}" />
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+            </Button>
+        </Controls:WindowCommands>
+    </Controls:MetroWindow.LeftWindowCommands>
+    <Controls:MetroWindow.RightWindowCommands>
+        <Controls:WindowCommands>
+            <Label Content="2D Skeleton Animator"/>
+        </Controls:WindowCommands>
+    </Controls:MetroWindow.RightWindowCommands>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <slide:SlideButton Width="200" VerticalAlignment="Top" HorizontalAlignment="Left" Height="25" Margin="10,10,0,0" Panel.ZIndex="999999999" IsAnimationState="{Binding IsAnimationMode}"/>
+        <Rectangle Width="4000" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top"  Fill="#BF119EDA" Panel.ZIndex="100000" IsEnabled="False" IsHitTestVisible="False" Margin="-5,-30,0,0" ></Rectangle>
+        <zoomWpfTest:PanAndZoomViewer x:Name="zoomViewer" MinimumZoom="0.5" MaximumZoom="10" Grid.Column="0">
+            <Grid>
+                <Grid.Background>
+                    <VisualBrush TileMode="Tile" Viewport="0,0,64,64" ViewportUnits="Absolute">
+                        <VisualBrush.Visual>
+                            <Image Source="../Resources/Background.png"></Image>
+                        </VisualBrush.Visual>
+                    </VisualBrush>
+                </Grid.Background>
+                <Button x:Name="btnDrawBones" Content="Draw Bones" Width="100" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10,10,210,0" Background="{Binding IsDrawBonesMode,  Converter={StaticResource BoolToBrushConverter}}" Panel.ZIndex="99999999" Command="{Binding ToggleDrawBonesCommand}"/>
+                    <ItemsControl Grid.ColumnSpan="1" AllowDrop="True" dragDrop:DragDrop.IsDropTarget="True" dragDrop:DragDrop.DropHandler="{Binding .}" RenderTransform="{Binding ElementName=zoomViewer,Path=TransformGroup}" Background="#00000000" Foreground="Black" ItemsSource="{Binding ViewportCollection}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="MouseLeftButtonDown">
+                            <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=CanvasMouseBtnLDownCommand}"
+                            PassEventArgsToCommand="True"/>
+                        </i:EventTrigger>
+                        <i:EventTrigger EventName="MouseRightButtonDown">
+                            <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=CanvasMouseBtnRDownCommand}"
+                            PassEventArgsToCommand="True"/>
+                        </i:EventTrigger>
+                        <i:EventTrigger EventName="MouseLeftButtonUp">
+                            <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=CanvasMouseBtnLUpCommand}"
+                            PassEventArgsToCommand="True"/>
+                        </i:EventTrigger>
+                        <i:EventTrigger EventName="MouseMove">
+                            <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=CanvasMouseMoveCommand}"
+                            PassEventArgsToCommand="True"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas IsItemsHost="True">
+                            </Canvas>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ContentControl Content="{Binding}">
+                                <ContentControl.Resources>
+                                    <DataTemplate DataType="{x:Type model:Texture2D}">
+                                        <Grid>
+                                            <Grid.Resources>
+                                                <helpers:BindingProxy x:Key="proxyGridItem" Data="{Binding}" />
+                                            </Grid.Resources>
+                                            <Grid.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Add Bone" Command="{Binding Path=Data.LboxRightClickAddBoneCommand,Source={StaticResource proxy}}" CommandParameter="{Binding Data, Source={StaticResource proxyGridItem}}"/>
+                                                    <MenuItem Header="Delete" Command="{Binding Path=Data.LboxRightClickDeleteCommand,Source={StaticResource proxy}}" CommandParameter="{Binding Data, Source={StaticResource proxyGridItem}}"/>
+                                                    <MenuItem Header="Reset" Command="{Binding Path=Data.LboxRightClickResetCommand,Source={StaticResource proxy}}" CommandParameter="{Binding Data, Source={StaticResource proxyGridItem}}"/>
+                                                </ContextMenu>
+                                            </Grid.ContextMenu>
+                                            <Border BorderThickness="{Binding Path=Selected, Converter={StaticResource BoolToThicknessConvert}}" BorderBrush="{DynamicResource AccentColorBrush}">
+                                                <Image Source="{Binding Texture.Source}" Stretch="Fill" Focusable="True">
+                                                    <i:Interaction.Triggers>
+                                                        <i:EventTrigger EventName="MouseEnter">
+                                                            <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=MouseEnterCommand}"/>
+                                                        </i:EventTrigger>
+                                                        <i:EventTrigger EventName="MouseLeave">
+                                                            <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=MouseLeaveCommand}"/>
+                                                        </i:EventTrigger>
+                                                    </i:Interaction.Triggers>
+                                                </Image>
+                                            </Border>
+                                            <Grid.RenderTransform>
+                                                <TransformGroup>
+                                                    <ScaleTransform ScaleY="{Binding ScaleY}" ScaleX="{Binding ScaleX}"/>
+                                                    <SkewTransform/>
+                                                    <RotateTransform Angle="{Binding Rotation}" CenterX="{Binding CenterPointX}" CenterY="{Binding CenterPointY}"/>
+                                                    <TranslateTransform X="0" Y="0"/>
+                                                </TransformGroup>
+                                            </Grid.RenderTransform>
+                                        </Grid>
+                                    </DataTemplate>
+                                    <HierarchicalDataTemplate ItemsSource="{Binding ChildCollection}"  DataType="{x:Type model:Bone}">
+                                        <Polygon DataContext="{Binding .}" Points="{Binding BoneShape.Points}" StrokeThickness="{Binding BoneShape.StrokeThickness}" Fill="{Binding BoneShape.Fill}" Stroke="{Binding BoneShape.Stroke}">
+                                            <Polygon.Resources>
+                                                <helpers:BindingProxy x:Key="proxyPoly" Data="{Binding}" />
+                                            </Polygon.Resources>
+                                            <Polygon.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="Add Bone" Command="{Binding Path=Data.LboxRightClickAddBoneCommand,Source={StaticResource proxy}}" CommandParameter="{Binding Data, Source={StaticResource proxyPoly}}"/>
+                                                    <MenuItem Header="Delete" Command="{Binding Path=Data.LboxRightClickDeleteCommand,Source={StaticResource proxy}}" CommandParameter="{Binding Data, Source={StaticResource proxyPoly}}"/>
+                                                    <MenuItem Header="Reset" Command="{Binding Path=Data.LboxRightClickResetCommand,Source={StaticResource proxy}}" CommandParameter="{Binding Data, Source={StaticResource proxyPoly}}"/>
+                                                </ContextMenu>
+                                            </Polygon.ContextMenu>
+                                            <i:Interaction.Triggers>
+                                                <i:EventTrigger EventName="MouseEnter">
+                                                    <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=MouseEnterCommand}"/>
+                                                </i:EventTrigger>
+                                                <i:EventTrigger EventName="MouseLeave">
+                                                    <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=MouseLeaveCommand}"/>
+                                                </i:EventTrigger>
+                                            </i:Interaction.Triggers>
+                                        </Polygon>
+                                    </HierarchicalDataTemplate>
+                                </ContentControl.Resources>
+                            </ContentControl>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style>
+                            <Setter Property="Canvas.Left" Value="{Binding PosX}"/>
+                            <Setter Property="Canvas.Top" Value="{Binding PosY}"/>
+                            <Setter Property="Panel.ZIndex" Value="{Binding Zindex}" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                </ItemsControl>
+            </Grid>
+        </zoomWpfTest:PanAndZoomViewer>
+        <xcad:DockingManager Background="#FF252525" Foreground="White" Width="200" HorizontalAlignment="Right" MaxWidth="200" MinWidth="175">
+            <xcad:DockingManager.BorderBrush>
+                <SolidColorBrush Color="Black"/>
+            </xcad:DockingManager.BorderBrush>
+            <xcad:DockingManager.Theme>
+                <xcad:GenericTheme/>
+            </xcad:DockingManager.Theme>
+            <xcad:LayoutRoot>
+                <xcad:LayoutPanel>
+                    <xcad:LayoutAnchorablePaneGroup DockWidth="*" Orientation="Vertical" DockMinWidth="100">
+                        <xcad:LayoutAnchorablePane DockHeight="*" DockMinWidth="100" DockMinHeight="140">
+                            <xcad:LayoutAnchorable Title="Transform" CanClose="False" CanHide="False" CanAutoHide="False" FloatingWidth="120" >
+                                <Grid MinHeight="120" MinWidth="170" DataContext="{Binding}" IsEnabled="{Binding SelectedItem.Selected, FallbackValue=False}" Background="#00000000" >
+                                    <i:Interaction.Triggers> <!-- For Undo and Redo-->
+                                        <i:EventTrigger EventName="MouseDown">
+                                            <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=PotentialInputGridCommand}"/>
+                                        </i:EventTrigger>
+                                        <i:EventTrigger EventName="GotKeyboardFocus">
+                                            <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=PotentialInputGridCommand}"/>
+                                        </i:EventTrigger>
+                                        <i:EventTrigger EventName="MouseLeave">
+                                            <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=InputGridCommand}"/>
+                                        </i:EventTrigger>
+                                        <i:EventTrigger EventName="LostKeyboardFocus">
+                                            <cmd:EventToCommand Command="{Binding Mode=OneWay, Path=InputGridCommand}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                    <Label Content="PosX:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-2,0,0,0"/>
+                                    <Label Content="PosY:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="82,0,0,0"/>
+                                    <Label Content="Angle:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-2,35,0,0"/>
+                                    <Label Content="ScaleX:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-2,70,0,0"/>
+                                    <Label Content="ScaleY:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="82,70,0,0"/>
+                                    <xctk:DecimalUpDown Value="{Binding SelectedItem.PosX, Converter={StaticResource DoubleToStringConverter}}" Width="42" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="42,3,0,0" MinHeight="25"  Foreground="White" BorderBrush="White" ParsingNumberStyle="AllowDecimalPoint"/>
+                                    <xctk:DecimalUpDown Value="{Binding SelectedItem.PosY, Converter={StaticResource DoubleToStringConverter}}" Width="42" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="125,3,0,0" MinHeight="25" Foreground="White" BorderBrush="White" ParsingNumberStyle="AllowDecimalPoint"/>
+                                    <xctk:DecimalUpDown Value="{Binding SelectedItem.Rotation, Converter={StaticResource DoubleToStringConverter}}" Width="42" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="42,36,0,0" MinHeight="25" Minimum="-1" Maximum="360" Foreground="White" BorderBrush="White" ParsingNumberStyle="AllowDecimalPoint"/>
+                                    <xctk:DecimalUpDown Value="{Binding SelectedItem.ScaleX, Converter={StaticResource DoubleToStringConverter}}" Width="42" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="42,72,0,0" MinHeight="25" Minimum="0.01" Foreground="White" BorderBrush="White" Increment="0.05" ParsingNumberStyle="AllowDecimalPoint"/>
+                                    <xctk:DecimalUpDown Value="{Binding SelectedItem.ScaleY, Converter={StaticResource DoubleToStringConverter}}" Width="42" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="125,72,0,0" MinHeight="25" Minimum="0.01" Foreground="White" BorderBrush="White" Increment="0.05" ParsingNumberStyle="AllowDecimalPoint"/>
+                                </Grid>
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorablePane>
+                        <xcad:LayoutAnchorablePane DockHeight="*" DockMinWidth="100" DockMinHeight="120">
+                            <xcad:LayoutAnchorable Title="Viewport" CanClose="False" CanHide="False" CanAutoHide="False">
+                                <TreeView ItemsSource="{Binding ViewportListCollection}" dragDrop:DragDrop.IsDragSource="True" dragDrop:DragDrop.IsDropTarget="True" dragDrop:DragDrop.DropHandler="{Binding .}">
+                                    <TreeView.ItemTemplate >
+                                        <HierarchicalDataTemplate ItemsSource="{Binding Path=ChildCollection}">
+                                            <TreeViewItem x:Name="lbItem" Header="{Binding Name}" dragDrop:DragDrop.IsDragSource="True" dragDrop:DragDrop.IsDropTarget="True" dragDrop:DragDrop.DropHandler="{Binding }" IsSelected="{Binding Selected}">
+                                                <TreeViewItem.Resources>
+                                                    <helpers:BindingProxy x:Key="proxyLbItem" Data="{Binding}"/>
+                                                </TreeViewItem.Resources>
+                                                <TreeViewItem.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="Add Bone" Command="{Binding Path=Data.LboxRightClickAddBoneCommand,Source={StaticResource proxy}}" CommandParameter="{Binding Data, Source={StaticResource proxyLbItem}}"/>
+                                                        <MenuItem Header="Delete" Command="{Binding Path=Data.LboxRightClickDeleteCommand,Source={StaticResource proxy}}" CommandParameter="{Binding Data, Source={StaticResource proxyLbItem}}"/>
+                                                        <MenuItem Header="Reset" Command="{Binding Path=Data.LboxRightClickResetCommand,Source={StaticResource proxy}}" CommandParameter="{Binding Data, Source={StaticResource proxyLbItem}}"/>
+                                                    </ContextMenu>
+                                                </TreeViewItem.ContextMenu>
+                                            </TreeViewItem>
+                                        </HierarchicalDataTemplate>
+                                    </TreeView.ItemTemplate>
+                                </TreeView>
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorablePane>
+                        <xcad:LayoutAnchorablePane DockHeight="*" DockMinWidth="100" DockMinHeight="120">
+                            <xcad:LayoutAnchorable Title="Resources" CanClose="False" CanHide="False" CanAutoHide="False">
+                                <ListBox ItemsSource="{Binding TextureCollection}" dragDrop:DragDrop.IsDragSource="True" dragDrop:DragDrop.IsDropTarget="True" SelectionMode="Extended"/>
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorablePane>
+                    </xcad:LayoutAnchorablePaneGroup>
+                </xcad:LayoutPanel>
+            </xcad:LayoutRoot>
+        </xcad:DockingManager>
+    </Grid>
+</Controls:MetroWindow>
